@@ -13,8 +13,8 @@
     (bind ?temp 20.0) ;Simula uma nova leitura (pode ser alterado)
     (if (> ?temp -50) then
         (assert (temperatura (dia quarta) (valor ?temp)))
-        (printout t "Temperatura de quarta (" ?temp " Celsius) registrada" crlf)
+        (printout t "Temperatura de quarta (" ?temp " øC) registrada" crlf)
      else
-        (printout t "Temperatura inv lida: " ?temp " Celsius" crlf)
+        (printout t "Temperatura inv lida: " ?temp " øC" crlf)
     )
 )
