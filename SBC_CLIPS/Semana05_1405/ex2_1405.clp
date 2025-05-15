@@ -46,7 +46,7 @@
 )
 
 (defrule rejeitar-baixa-resistencia
-    (declare (salience 15))
+    (declare (salience 10))
     (produto    (identificador ?id)
                 (peso ?peso)
                 (resistencia ?resistencia)
@@ -62,7 +62,7 @@
 )
 
 (defrule rejeitar-defeito-visual
-    (declare (salience 10))
+    (declare (salience 15))
     (produto    (identificador ?id)
                 (peso ?peso)
                 (resistencia ?resistencia)
@@ -72,7 +72,7 @@
     =>
     (assert (classificacao
                 (identificador ?id)
-                (resultado "Rejeitado pela quantida de de defeitos")
+                (resultado "Rejeitado pela quantidade de defeitos")
             )   
     )
 )
