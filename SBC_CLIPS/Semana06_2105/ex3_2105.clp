@@ -28,13 +28,13 @@
         (printout t "Programa Finalizado!")
         (halt)
      else
-        (assert (entrada (equipamento_nome ?eqp)))   
+        (assert (equipamento (equipamento_nome ?eqp)))   
     )
 )
 
 (defrule atualiza_prd_eqp
-    ?cur_eqp <- (entrada (equipamento_nome ?eqp))
-    ?lst_eqp <- (equipamento (equipamento_nome ?eqp))
+    ?cur_eqp <- (equipamento (equipamento_nome ?eqp))
+    ?lst_eqp <- (producao (equipamento_nome ?eqp))
     =>
     (printout t "------ ATUALIZE O EQUIPAMENTO ------" crlf)
     (printout t "Informe o Tempo parado (min): ")
@@ -53,8 +53,8 @@
 )
 
 (defrule coleta_novo_eqp
-    ?cur_eqp <- (entrada (equipamento_nome ?eqp))
-    (not (equipamento (equipamento_nome ?eqp)))
+    ?cur_eqp <- (equipamento (equipamento_nome ?eqp))
+    (not (producao (equipamento_nome ?eqp)))
     =>
     (printout t "------ NOVO O EQUIPAMENTO ------" crlf)
     (printout t "Informe o Tempo planejado (min): ")
