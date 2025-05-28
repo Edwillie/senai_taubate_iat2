@@ -3,7 +3,7 @@
    (slot id (type INTEGER))
    (slot nome (type STRING))
    (slot tempo-planejado (type FLOAT))
-   (slot eficiencia (type FLOAT))
+   (slot eficiencia (type FLOAT)) 
 )
 
 ;; Fato inicial para come‡ar o fluxo
