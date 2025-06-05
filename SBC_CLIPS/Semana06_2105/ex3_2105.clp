@@ -11,6 +11,7 @@
 
 (deftemplate equipamento
     (slot equipamento_nome (type STRING))
+    (slot plan_minutos (type INTEGER) (default 0))
     (slot tempo_ciclo_ideal (type INTEGER) (default 0))
     (slot status (type STRING))
 )
@@ -22,17 +23,12 @@
     (slot prod_qtde_pecas_refugo (type INTEGER) (default 0))
 )
 
-(deftemplate planejado
-    (slot equipamento_nome (type STRING))
-    (slot plan_minutos (type INTEGER) (default 0))
-    (slot plan_qtde_pecas (type INTEGER) (default 0))
-)
-
 (deftemplate performance
     (slot equipamento_nome (type STRING))
     (slot perf_minutos_trabalho (type INTEGER) (default 0))
     (slot perf_rend (type FLOAT) (default 0.0))
     (slot perf_disp (type FLOAT) (default 0.0))
+    (slot perf_qual (type FLOAT) (default 0.0))
     (slot perf_OEE (type FLOAT) (default 0.0))
 )
 
@@ -43,6 +39,10 @@
 (defrule coletar_dados
     ?f <- (fase solicitar-eqp)
     => 
+    (printout t  crlf)
+    (printout t  crlf)
+    (printout t  crlf)
+    (printout t "------------------------------------------------------------------------------" crlf)
     (printout t "------ INFORME O EQUIPAMENTO ------" crlf)
     (printout t "Informe o equipamento (ou digite sair para encerrar o programa): ")
     (bind ?eqp (read))
@@ -53,7 +53,101 @@
         (assert (eqp-digitado ?eqp))
         (assert (fase verificar-existencia))   
     )
+    (retract ?f)
 )
+
+(defrule novo-equipamento
+    ?f <- (fase verificar-existencia)
+    ?v <- (eqp-digitado ?eqp)
+    (not (equipamento (equipamento_nome ?eqp)))
+    =>
+    (printout t  crlf)
+    (printout t  crlf)
+    (printout t  crlf)
+    (printout t "------------------------------------------------------------------------------" crlf)
+    (printout t "----- NOVO EQUIPAMENTO: " ?eqp " -----" crlf)
+    (printout t "Informe o Tempo de Ciclo Ideal desse equipamento: ")
+    (bind ?tci (read))
+    (printout t "Informe a quantidade de pe‡as PRODUZIDAS: ")
+    (bind ?qpp (read))
+    (printout t "Informe a quantidade de pe‡as DEFEITUOSAS: ")
+    (bind ?qpd (read))
+    (printout t "Informe o tempo de equipamento PLANEJADO DE TRABALHO: ")
+    (bind ?tept (read))
+    (printout t "Informe o tempo de equipamento PARADO: ")
+    (bind ?tes (read))
+    (assert (equipamento (equipamento_nome ?eqp)
+                         (plan_minutos ?tept)
+                         (tempo_ciclo_ideal ?tci))
+            (producao (equipamento_nome ?eqp)
+                      (prod_minutos_parado ?tes)
+                      (prod_qtde_pecas ?qpp)
+                      (prod_qtde_pecas_refugo ?qpd))             
+    )
+    ;(assert (fase solicitar-eqp))
+    (assert (fase calculos-processos))
+    (retract ?f ?v)
+)
+
+(defrule lancar-producao
+    ?f <- (fase verificar-existencia)
+    ?v <- (eqp-digitado ?eqp)
+    (equipamento (equipamento_nome ?eqp))
+    =>
+    (printout t  crlf)
+    (printout t  crlf)
+    (printout t  crlf)
+    (printout t "------------------------------------------------------------------------------" crlf)
+    (printout t "----- ATUALIZA PRODUCAO: " ?eqp " -----" crlf)
+    (printout t "Informe a quantidade de pe‡as PRODUZIDAS: ")
+    (bind ?qpp (read))
+    (printout t "Informe a quantidade de pe‡as DEFEITUOSAS: ")
+    (bind ?qpd (read))
+    (printout t "Informe o tempo de equipamento PARADO: ")
+    (bind ?tes (read))
+    (assert (producao (equipamento_nome ?eqp)
+                      (prod_minutos_parado ?tes)
+                      (prod_qtde_pecas ?qpp)
+                      (prod_qtde_pecas_refugo ?qpd))             
+    )
+    ;(assert (fase solicitar-eqp))
+    (assert (fase calculos-processos))
+    (retract ?f ?v)
+)
+
+(defrule calcular-indicadores
+    ?f <- (fase calculos-processos)
+    (equipamento (equipamento_nome ?eqp)
+                 (plan_minutos ?tept)
+                 (tempo_ciclo_ideal ?tci))
+    (producao (equipamento_nome ?eqp)
+              (prod_minutos_parado ?tes)
+              (prod_qtde_pecas ?qpp)
+              (prod_qtde_pecas_refugo ?qpd))
+    =>
+    (printout t  crlf)
+    (printout t  crlf)
+    (printout t  crlf)
+    (printout t "------------------------------------------------------------------------------" crlf)
+    (printout t "----- CALCULANDO INDICADORES " ?eqp " -----" crlf)
+    ;(- ?tept ?tes) --------------------> Tempo Trabalhado = plan_minutos - prod_minutos_parado
+    ;(/ (- ?tept ?tes) ?tept) ----------> Disponibilidade  = Tempo Trabalhado / plan_minutos 
+    ;(/ (* ?qpp ?tci) (- ?tept ?tes)) --> Performance      = (Qtde Produzida * Tempo Cilo Ideal) / Tempo Trabalhado 
+    ;(/ (- ?qpp ?qpd) ?qpp) ------------> Qualidade        = (Qtde Produzida - Qtde Refugo) / Qtde Produzida
+    (assert (performance (equipamento_nome ?eqp)
+                         (perf_minutos_trabalho (- ?tept ?tes))
+                         (perf_qual (/ (- ?qpp ?qpd) ?qpp))
+                         (perf_rend (/ (* ?qpp ?tci) (- ?tept ?tes)))
+                         (perf_disp (/ (- ?tept ?tes) ?tept)))            
+    )
+    (printout t "Disponibilidade = " (/ (- ?tept ?tes) ?tept) crlf)
+    (printout t "Performance.... = " (/ (* ?qpp ?tci) (- ?tept ?tes)) crlf)
+    (printout t "Qualidade...... = " (/ (- ?qpp ?qpd) ?qpp) crlf)
+    (assert (fase solicitar-eqp))
+    (retract ?f)
+)
+
+
 
 ;(defrule atualiza_prd_eqp
 ;    ?cur_eqp <- (equipamento (equipamento_nome ?eqp))

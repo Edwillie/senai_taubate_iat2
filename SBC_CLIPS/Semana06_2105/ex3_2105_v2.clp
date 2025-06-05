@@ -32,9 +32,9 @@
    (declare (salience 10)) ; Maior prioridade para verificar antes de assumir que n∆o existe
    ?f1 <- (fase verificar-existencia)
    ?f2 <- (id-digitado ?vNome)
-   ?eq <- (equipamento (nome ?nome))
+   ?eq <- (equipamento (nome ?vNome))
    =>
-   (printout t "Equipamento ID (" ?nome ") j† cadastrado." crlf)
+   (printout t "Equipamento ID (" ?vNome ") j† cadastrado." crlf)
    (printout t "Iniciando atualizaá∆o de dados..." crlf)
    (assert (atualizar-equipamento ?eq)) ; Passa a referància do fato
    ;(assert (fase solicitar-dados-atualizacao))
